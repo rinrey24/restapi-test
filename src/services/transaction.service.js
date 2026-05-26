@@ -14,10 +14,8 @@ async function topUp(userId, amount) {
   try {
     await client.query('BEGIN');
 
-    // 1. Tambah saldo
     const newBalance = await balanceRepo.addBalance(client, userId, amount);
 
-    // 2. Catat di riwayat transaksi
     const invoice = generateInvoiceNumber();
     await transactionRepo.create(client, {
       invoiceNumber: invoice,
@@ -34,12 +32,11 @@ async function topUp(userId, amount) {
     await client.query('ROLLBACK');
     throw err;
   } finally {
-    client.release(); // WAJIB — kembalikan koneksi ke pool
+    client.release(); 
   }
 }
 
 async function payment(userId, serviceCode) {
-  // 1. Cek service_code valid
   const service = await serviceRepo.findByCode(serviceCode);
   if (!service) {
     throw new AppError(400, 102, 'Service atau Layanan tidak ditemukan');
@@ -49,10 +46,8 @@ async function payment(userId, serviceCode) {
   try {
     await client.query('BEGIN');
 
-    // 2. Kurangi saldo — akan throw error kalau saldo tidak cukup
     const newBalance = await balanceRepo.deductBalance(client, userId, service.service_tariff);
 
-    // 3. Catat transaksi
     const invoice = generateInvoiceNumber();
     const transaction = await transactionRepo.create(client, {
       invoiceNumber: invoice,
@@ -76,7 +71,6 @@ async function payment(userId, serviceCode) {
   } catch (err) {
     await client.query('ROLLBACK');
 
-    // Bedakan error saldo tidak cukup vs error lain
     if (err.message === 'Saldo tidak mencukupi') {
       throw new AppError(400, 102, 'Saldo tidak mencukupi');
     }
@@ -87,11 +81,9 @@ async function payment(userId, serviceCode) {
 }
 
 async function getHistory(userId, offset = 0, limit = 0) {
-  // limit = 0 artinya ambil semua (sesuai Swagger — kalau tidak ada limit param)
   const effectiveLimit = limit > 0 ? limit : null;
   const effectiveOffset = offset >= 0 ? offset : 0;
 
-  // Kalau limit null, ambil semua dengan query tanpa LIMIT
   let rows;
   if (effectiveLimit === null) {
     const query = `

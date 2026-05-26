@@ -1,17 +1,19 @@
-const multer = require('multer');
-const path = require('path');
-const crypto = require('crypto');
+const multer      = require('multer');
+const cloudinary  = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // folder tujuan
-  },
-  filename: (req, file, cb) => {
-    // nama file = random hex + timestamp + extension asli
-    // supaya tidak bisa ditebak dan tidak ada nama yang tabrakan
-    const uniqueName = crypto.randomBytes(16).toString('hex');
-    const ext = path.extname(file.originalname);
-    cb(null, `${uniqueName}-${Date.now()}${ext}`);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'profile-images',      
+    allowed_formats: ['jpeg', 'png'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }], 
   },
 });
 
@@ -27,7 +29,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // maksimal 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, 
 });
 
 module.exports = upload;

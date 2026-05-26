@@ -23,12 +23,8 @@ async function updateProfile(userId, { first_name, last_name }) {
 async function updateProfileImage(userId, file) {
   if (!file) throw new AppError(400, 102, 'File gambar tidak ditemukan');
 
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (!['.jpeg', '.png'].includes(ext)) {
-    throw new AppError(400, 102, 'Format gambar tidak didukung. Gunakan jpeg atau png');
-  }
+  const imageUrl = file.path;
 
-  const imageUrl = `/uploads/${file.filename}`;
   const user = await userRepo.updateProfileImage(userId, imageUrl);
   return user;
 }
