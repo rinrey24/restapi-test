@@ -6,7 +6,7 @@ function authenticate(req, res, next) {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return errorResponse(res, 401, 108, 'Token tidak tidak valid atau kadaluwarsa');
+    return errorResponse(res, 401, 108, 'Token tidak valid atau kadaluwarsa');
   }
 
   const token = authHeader.split(' ')[1]; 
@@ -16,7 +16,7 @@ function authenticate(req, res, next) {
     req.user = decoded; 
     next();
   } catch (err) {
-    return errorResponse(res, 401, 108, 'Token tidak tidak valid atau kadaluwarsa');
+    return errorResponse(res, 401, 108, 'Token tidak valid atau kadaluwarsa');
   }
 }
 
